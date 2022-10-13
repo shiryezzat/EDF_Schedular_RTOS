@@ -52,11 +52,10 @@
  *
  */
 
-/*-----------------------------------------------------------*
-*------------------------------------------------------------*
-*                           Includes
-*------------------------------------------------------------*
-*-----------------------------------------------------------*/
+/*-----------------------------------------------------------------------------*
+ * INCLUDES
+ *----------------------------------------------------------------------------*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -68,24 +67,33 @@
 #include "GPIO.h"
 
 
-/*-----------------------------------------------------------*
-*------------------------------------------------------------*
-*                     Task Periodicity Definition
-*------------------------------------------------------------*
-*-----------------------------------------------------------*/
-#define Button1_Periodicity         50
-#define Button2_Periodicity         50
-#define Transmitter_Periodicity     100
-#define Uart_Periodicity            20
-#define Load1_Periodicity           10
-#define Load2_Periodicity           100
+/*-----------------------------------------------------------------------------*
+ * MACROS AND DEFINES
+ *----------------------------------------------------------------------------*/
+ 
+ /* TASK PERIODS */
+#define PERIOD_BTN1         		50
+#define PERIOD_BTN2         		50
+#define PERIOD_TRANSMITTER     	100
+#define PERIOD_UART            	20
+#define PERIOD_LOAD1           	10
+#define PERIOD_LOAD2           	100
 
+/* STRINGS */
+#define STR_POSITIVE_BTN1  			"\n\nButton 1 -> Positive Edge\n"
+#define STR_POSITIVE_BTN2  			"\n\nButton 2 -> Positive Edge\n"
+#define STR_NEGATIVE_BTN1  			"\n\nButton 1 -> Negative Edge\n"
+#define STR_NEGATIVE_BTN2  			"\n\nButton 2 -> Negative Edge\n"
+#define STR_TX           				"\nPeriodic Transmitter 100ms."
 
-/*-----------------------------------------------------------*
-*------------------------------------------------------------*
-*                     Tasks Handler Definition
-*------------------------------------------------------------*
-*-----------------------------------------------------------*/
+/* DELAYS */
+#define DELAY_5ms								60000
+#define DELAY_12ms							144000
+
+/*-----------------------------------------------------------------------------*
+ * TASKS HANDLERS
+ *----------------------------------------------------------------------------*/
+
 TaskHandle_t B1_Handle      		= NULL;
 TaskHandle_t B2_Handle      		= NULL;
 TaskHandle_t Transmitter_Handle = NULL;
@@ -95,31 +103,19 @@ TaskHandle_t L2_Handle     			= NULL;
 BaseType_t xReturned;
 
 
-/*-----------------------------------------------------------*
-*------------------------------------------------------------*
-*                     Queue Handler Definition
-*------------------------------------------------------------*
-*-----------------------------------------------------------*/
+
+/*-----------------------------------------------------------------------------*
+ * QUEUE HANDLER
+ *----------------------------------------------------------------------------*/
+
 QueueHandle_t xQueue__UART = NULL;
 
 
-/*-----------------------------------------------------------*
-*------------------------------------------------------------*
-*                     Strings Definition
-*------------------------------------------------------------*
-*-----------------------------------------------------------*/
-#define B1_String_Positive  "\n\nButton 1 -> Positive Edge\n"
-#define B2_String_Positive  "\n\nButton 2 -> Positive Edge\n"
-#define B1_String_Negative  "\n\nButton 1 -> Negative Edge\n"
-#define B2_String_Negative  "\n\nButton 2 -> Negative Edge\n"
-#define Tx_String           "\nPeriodic Transmitter 100ms."
 
+/*-----------------------------------------------------------------------------*
+ * TASKS
+ *----------------------------------------------------------------------------*/
 
-/*-----------------------------------------------------------*
-*------------------------------------------------------------*
-*                     Tasks Implementations
-*------------------------------------------------------------*
-*-----------------------------------------------------------*/
 void vApplicationTickHook (void)                                /* TICK Visualization */
 {
 	
@@ -128,7 +124,7 @@ void vApplicationTickHook (void)                                /* TICK Visualiz
 
 }
 
-void Button1_Task( void * pvParameters )                        /* Button 1 Task -> Monitor the if any change happens on Port 0, Pin 0 */
+void Button_1_Monitor( void * pvParameters )                        /* Button 1 Task -> Monitor the if any change happens on Port 0, Pin 0 */
 {
 
 	uint8_t i = 0;
@@ -149,7 +145,7 @@ void Button1_Task( void * pvParameters )                        /* Button 1 Task
 			/*Positive Edge*/
 			for( i = 0 ; i < 28 ; i++)
 			{
-				xQueueSend( xQueue__UART , B1_String_Positive + i ,100);
+				xQueueSend( xQueue__UART , STR_POSITIVE_BTN1 + i ,100);
 			}
 			
 		}
@@ -159,17 +155,17 @@ void Button1_Task( void * pvParameters )                        /* Button 1 Task
 			/*Negative Edge*/
 			for( i = 0 ; i < 28 ; i++)
 			{
-				xQueueSend( xQueue__UART , B1_String_Negative + i ,100);
+				xQueueSend( xQueue__UART , STR_NEGATIVE_BTN1 + i ,100);
 			}
 			
 		}
 
 		Button1_OldState = Button1_NewState;
-		vTaskDelayUntil( &xLastWakeTime , Button1_Periodicity);
+		vTaskDelayUntil( &xLastWakeTime , PERIOD_BTN1);
 	}
 }
 
-void Button2_Task( void * pvParameters )                        /* Button 2 Task -> Monitor if any change happens on Port 0, Pin 1 */
+void Button_2_Monitor( void * pvParameters )                        /* Button 2 Task -> Monitor if any change happens on Port 0, Pin 1 */
 {
 
 	uint8_t i = 0;
@@ -187,7 +183,7 @@ void Button2_Task( void * pvParameters )                        /* Button 2 Task
 			
 			for( i = 0 ; i < 28 ; i++)
 			{
-				xQueueSend( xQueue__UART , B2_String_Positive+i ,100);
+				xQueueSend( xQueue__UART , STR_POSITIVE_BTN2+i ,100);
 			}
 			
 		}
@@ -196,18 +192,18 @@ void Button2_Task( void * pvParameters )                        /* Button 2 Task
 			
 			for( i = 0 ; i < 28 ; i++)
 			{
-				xQueueSend( xQueue__UART , B2_String_Negative + i ,100);
+				xQueueSend( xQueue__UART , STR_NEGATIVE_BTN2 + i ,100);
 			}
 						
 		}
 
 		Button2_OldState = Button2_NewState;
-		vTaskDelayUntil( &xLastWakeTime , Button2_Periodicity);
+		vTaskDelayUntil( &xLastWakeTime , PERIOD_BTN2);
 	}
 }
 
 
-void Transmitter_Task (void * pvParameters )                    /* Transmitter Task -> Periodiclly send data to the UART*/
+void Periodic_Transmitter (void * pvParameters )                    /* Transmitter Task -> Periodiclly send data to the UART*/
 {
 
 	uint8_t i = 0;
@@ -216,18 +212,18 @@ void Transmitter_Task (void * pvParameters )                    /* Transmitter T
 	for( ; ; )
 	{
 		
-		/*Send string characters over Queue xQueue__UART to Uart_Task*/
+		/*Send string characters over Queue xQueue__UART to Uart_Receiver*/
 		for( i = 0 ; i < 28 ; i++)
 		{
-			xQueueSend( xQueue__UART , Tx_String + i ,100);
+			xQueueSend( xQueue__UART , STR_TX + i ,100);
 		}
 		
-		vTaskDelayUntil( &xLastWakeTime , Transmitter_Periodicity);
+		vTaskDelayUntil( &xLastWakeTime , PERIOD_TRANSMITTER);
 	}
 	
 }
 
-void Uart_Task (void * pvParameters )                           /* UART Task -> Recieve the data sent to the UART */
+void Uart_Receiver (void * pvParameters )                           /* UART Task -> Recieve the data sent to the UART */
 {
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 	char Rx_String[28];
@@ -236,7 +232,7 @@ void Uart_Task (void * pvParameters )                           /* UART Task -> 
 	for( ; ; )
 	{
 		
-		/*Receive String from Transmitter_Task*/
+		/*Receive String from Periodic_Transmitter*/
 		if( uxQueueMessagesWaiting(xQueue__UART) != 0)
 		{
 			
@@ -249,7 +245,7 @@ void Uart_Task (void * pvParameters )                           /* UART Task -> 
 			
 		}
 		
-		vTaskDelayUntil( &xLastWakeTime , Uart_Periodicity);
+		vTaskDelayUntil( &xLastWakeTime , PERIOD_UART);
 	}
 }
 	
@@ -257,7 +253,7 @@ void Uart_Task (void * pvParameters )                           /* UART Task -> 
 
 
 
-void Load1_Task ( void * pvParameters )                         /* Load 1 Task -> Perform CPU Load for 5ms*/
+void Load_1_Simulation ( void * pvParameters )                         /* Load 1 Task -> Perform CPU Load for 5ms*/
 {
 	
 	TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -269,15 +265,15 @@ void Load1_Task ( void * pvParameters )                         /* Load 1 Task -
 		
 		for( i = 0 ; i <= Period; i++)
 		{
-			/*5ms delay*/
+			/* Delay 5ms */
 		}
 
-		vTaskDelayUntil( &xLastWakeTime , Load1_Periodicity);
+		vTaskDelayUntil( &xLastWakeTime , PERIOD_LOAD1);
 
 	}
 }
 
-void Load2_Task ( void * pvParameters )                         /* Load 2 Task -> Perform CPU Load for 12ms*/
+void Load_2_Simulation ( void * pvParameters )                         /* Load 2 Task -> Perform CPU Load for 12ms*/
 {
 	
 	TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -289,21 +285,31 @@ void Load2_Task ( void * pvParameters )                         /* Load 2 Task -
 		
 		for( i = 0 ; i <= Period; i++)
 		{
-			/*12ms delay*/
+			/* Delay 12ms */
 		}
 
-		vTaskDelayUntil( &xLastWakeTime , Load2_Periodicity);
+		vTaskDelayUntil( &xLastWakeTime , PERIOD_LOAD2);
 	
 	}
 }
  
  
-/*-----------------------------------------------------------*
-*------------------------------------------------------------*
-*                 Main Function Implementation
-*------------------------------------------------------------*
-*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
+
+/*
+ * Configure the processor for use with the Keil demo board.  This is very
+ * minimal as most of the setup is managed by the settings in the project
+ * file.
+ */
 static void prvSetupHardware( void );
+
+
+/*-----------------------------------------------------------*/
+
+/*
+ * Application entry point:
+ * Starts all the other tasks, then starts the scheduler. 
+ */
 
 int main( void )
 {
@@ -316,58 +322,58 @@ int main( void )
 
     /* Tasks Creation */
 	xTaskPeriodicCreate(
-			Button1_Task,                  		/* Task Implementation */
-			"BUTTON 1",                			/* Task Name */
-			100,                               	/* Stack Size */
-			( void * ) 0,                      	/* Task Parameter in*/
-			1,                                 	/* Task Priority */
-			&B1_Handle,       					/* Task Handle*/
-			Button1_Periodicity);     			/* Task Periodicity*/
+			Button_1_Monitor,                  		/* Task Implementation */
+			"BUTTON 1",                						/* Task Name */
+			100,                               		/* Stack Size */
+			( void * ) 0,                      		/* Task Parameter in*/
+			1,                                 		/* Task Priority */
+			&B1_Handle,       										/* Task Handle*/
+			PERIOD_BTN1);     										/* Task Periodicity*/
 
 	xTaskPeriodicCreate(
-			Button2_Task,
-			"BUTTON 2",
-			100, 
-			( void * ) 0,
-			1,
-			&B2_Handle,
-			Button2_Periodicity);     
+			Button_2_Monitor,											/* Task Implementation */
+			"BUTTON 2",														/* Task Name */
+			100, 																	/* Task Size */
+			( void * ) 0,													/* Task Parameter in*/
+			1,																		/* Task Priority */
+			&B2_Handle,														/* Task Handle */
+			PERIOD_BTN2);													/* Task Periodicity */     
 
 	xTaskPeriodicCreate(
-			Transmitter_Task, 
-			"PERIODIC TRANSMITTER",
-			100,
-			( void * ) 0, 
-			1, 
-			&Transmitter_Handle,  
-			Transmitter_Periodicity);  
+			Periodic_Transmitter,									/* Task Implementation */ 
+			"PERIODIC TRANSMITTER",								/* Task Name */
+			100,																	/* Task Size */
+			( void * ) 0,													/* Task Parameter in*/ 
+			1, 																		/* Task Priority */
+			&Transmitter_Handle, 									/* Task Handle */ 
+			PERIOD_TRANSMITTER);  								/* Task Periodicity */
 
 	xTaskPeriodicCreate(
-			Uart_Task, 
-			"UART",       
-			100,               
-			( void * ) 0,             
-			1,                            
-			&Uart_Handle,     
-			Uart_Periodicity);      
+			Uart_Receiver, 												/* Task Implementation */
+			"UART",     													/* Task Name */												  
+			100,   																/* Task Size */            
+			( void * ) 0,													/* Task Parameter in */             
+			1,            												/* Task Priority */                
+			&Uart_Handle, 												/* Task Handle */    
+			PERIOD_UART);													/* Task Periodicity */      
 
 	xTaskPeriodicCreate(
-			Load1_Task,                
-			"LOAD 1",           
-			100,                       
-			( void * ) 0,           
-			1,                         
-			&L1_Handle,          
-			Load1_Periodicity);	   		
+			Load_1_Simulation,										/* Task Implementation */                
+			"LOAD 1",   													/* Task Name */        
+			100,                       						/* Task Size */
+			( void * ) 0,           							/* Task Parameter in */
+			1,                         						/* Task Priority */
+			&L1_Handle,          									/* Task Handle */
+			PERIOD_LOAD1);	   										/* Task Periodicity */
 
 	xTaskPeriodicCreate(
-			Load2_Task,            
-			"LOAD 2",        
-			100,                      
-			( void * ) 0,            
-			1,                         
-			&L2_Handle,		   
-			Load2_Periodicity); 	
+			Load_2_Simulation,										/* Task Implementation */            
+			"LOAD 2",        											/* Task Name */
+			100,                      						/* Task Size */
+			( void * ) 0,            							/* Task Parameter in */
+			1,                         						/* Task Priority */
+			&L2_Handle,		   											/* Task Handle */
+			PERIOD_LOAD2); 												/* Task Periodicity */
 
 	
 		
@@ -385,12 +391,8 @@ int main( void )
 
 }
 
+/*-----------------------------------------------------------*/
 
-/*-----------------------------------------------------------*
-*------------------------------------------------------------*
-*                 
-*------------------------------------------------------------*
-*-----------------------------------------------------------*/
 
 /* Constants to setup I/O and processor. */
 #define mainBUS_CLK_FULL	( ( unsigned char ) 0x01 )
@@ -435,9 +437,6 @@ static void prvSetupHardware( void )
 	VPBDIV = mainBUS_CLK_FULL;
 }
 
-
-/*-----------------------------------------------------------*
-*------------------------------------------------------------*
-*                		 End of File
-*------------------------------------------------------------*
-*-----------------------------------------------------------*/
+/*-----------------------------------------------------------------------------*
+ * END FILE
+ *----------------------------------------------------------------------------*/
