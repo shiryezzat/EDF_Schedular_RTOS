@@ -74,32 +74,32 @@
  /* TASK PERIODS */
 #define PERIOD_BTN1         		50
 #define PERIOD_BTN2         		50
-#define PERIOD_TRANSMITTER     	100
-#define PERIOD_UART            	20
-#define PERIOD_LOAD1           	10
-#define PERIOD_LOAD2           	100
+#define PERIOD_TRANSMITTER     		100
+#define PERIOD_UART            		20
+#define PERIOD_LOAD1           		10
+#define PERIOD_LOAD2           		100
 
 /* STRINGS */
 #define STR_POSITIVE_BTN1  			"\n\nButton 1 -> Positive Edge\n"
 #define STR_POSITIVE_BTN2  			"\n\nButton 2 -> Positive Edge\n"
 #define STR_NEGATIVE_BTN1  			"\n\nButton 1 -> Negative Edge\n"
 #define STR_NEGATIVE_BTN2  			"\n\nButton 2 -> Negative Edge\n"
-#define STR_TX           				"\nPeriodic Transmitter 100ms."
+#define STR_TX           			"\nPeriodic Transmitter 100ms."
 
 /* DELAYS */
-#define DELAY_5ms								60000
-#define DELAY_12ms							144000
+#define DELAY_5ms					60000
+#define DELAY_12ms					144000
 
 /*-----------------------------------------------------------------------------*
  * TASKS HANDLERS
  *----------------------------------------------------------------------------*/
 
-TaskHandle_t B1_Handle      		= NULL;
-TaskHandle_t B2_Handle      		= NULL;
-TaskHandle_t Transmitter_Handle = NULL;
-TaskHandle_t Uart_Handle        = NULL;
-TaskHandle_t L1_Handle     			= NULL;
-TaskHandle_t L2_Handle     			= NULL;
+TaskHandle_t B1_Handle				= NULL;
+TaskHandle_t B2_Handle				= NULL;
+TaskHandle_t Transmitter_Handle		= NULL;
+TaskHandle_t Uart_Handle			= NULL;
+TaskHandle_t L1_Handle				= NULL;
+TaskHandle_t L2_Handle				= NULL;
 BaseType_t xReturned;
 
 
@@ -116,7 +116,7 @@ QueueHandle_t xQueue__UART = NULL;
  * TASKS
  *----------------------------------------------------------------------------*/
 
-void vApplicationTickHook (void)                                /* TICK Visualization */
+void vApplicationTickHook (void)					/* TICK Visualization */
 {
 	
 	GPIO_write(PORT_1,PIN7,PIN_IS_HIGH);
@@ -124,7 +124,7 @@ void vApplicationTickHook (void)                                /* TICK Visualiz
 
 }
 
-void Button_1_Monitor( void * pvParameters )                        /* Button 1 Task -> Monitor the if any change happens on Port 0, Pin 0 */
+void Button_1_Monitor( void * pvParameters )		/* Button 1 Task -> Monitor the if any change happens on Port 0, Pin 0 */
 {
 
 	uint8_t i = 0;
@@ -165,7 +165,7 @@ void Button_1_Monitor( void * pvParameters )                        /* Button 1 
 	}
 }
 
-void Button_2_Monitor( void * pvParameters )                        /* Button 2 Task -> Monitor if any change happens on Port 0, Pin 1 */
+void Button_2_Monitor( void * pvParameters )		/* Button 2 Task -> Monitor if any change happens on Port 0, Pin 1 */
 {
 
 	uint8_t i = 0;
@@ -203,7 +203,7 @@ void Button_2_Monitor( void * pvParameters )                        /* Button 2 
 }
 
 
-void Periodic_Transmitter (void * pvParameters )                    /* Transmitter Task -> Periodiclly send data to the UART*/
+void Periodic_Transmitter (void * pvParameters )		/* Transmitter Task -> Periodiclly send data to the UART*/
 {
 
 	uint8_t i = 0;
@@ -223,7 +223,7 @@ void Periodic_Transmitter (void * pvParameters )                    /* Transmitt
 	
 }
 
-void Uart_Receiver (void * pvParameters )                           /* UART Task -> Recieve the data sent to the UART */
+void Uart_Receiver (void * pvParameters )				/* UART Task -> Recieve the data sent to the UART */
 {
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 	char Rx_String[28];
@@ -253,7 +253,7 @@ void Uart_Receiver (void * pvParameters )                           /* UART Task
 
 
 
-void Load_1_Simulation ( void * pvParameters )                         /* Load 1 Task -> Perform CPU Load for 5ms*/
+void Load_1_Simulation ( void * pvParameters )				/* Load 1 Task -> Perform CPU Load for 5ms*/
 {
 	
 	TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -273,7 +273,7 @@ void Load_1_Simulation ( void * pvParameters )                         /* Load 1
 	}
 }
 
-void Load_2_Simulation ( void * pvParameters )                         /* Load 2 Task -> Perform CPU Load for 12ms*/
+void Load_2_Simulation ( void * pvParameters )				/* Load 2 Task -> Perform CPU Load for 12ms*/
 {
 	
 	TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -322,58 +322,58 @@ int main( void )
 
     /* Tasks Creation */
 	xTaskPeriodicCreate(
-			Button_1_Monitor,                  		/* Task Implementation */
-			"BUTTON 1",                						/* Task Name */
-			100,                               		/* Stack Size */
-			( void * ) 0,                      		/* Task Parameter in*/
-			1,                                 		/* Task Priority */
-			&B1_Handle,       										/* Task Handle*/
-			PERIOD_BTN1);     										/* Task Periodicity*/
+			Button_1_Monitor,						/* Task Implementation */
+			"BUTTON 1",								/* Task Name */
+			100,									/* Stack Size */
+			( void * ) 0,							/* Task Parameter in*/
+			1,										/* Task Priority */
+			&B1_Handle,								/* Task Handle*/
+			PERIOD_BTN1);							/* Task Periodicity*/
 
 	xTaskPeriodicCreate(
-			Button_2_Monitor,											/* Task Implementation */
-			"BUTTON 2",														/* Task Name */
-			100, 																	/* Task Size */
-			( void * ) 0,													/* Task Parameter in*/
-			1,																		/* Task Priority */
-			&B2_Handle,														/* Task Handle */
-			PERIOD_BTN2);													/* Task Periodicity */     
+			Button_2_Monitor,						/* Task Implementation */
+			"BUTTON 2",								/* Task Name */
+			100, 									/* Task Size */
+			( void * ) 0,							/* Task Parameter in*/
+			1,										/* Task Priority */
+			&B2_Handle,								/* Task Handle */
+			PERIOD_BTN2);							/* Task Periodicity */
 
 	xTaskPeriodicCreate(
-			Periodic_Transmitter,									/* Task Implementation */ 
-			"PERIODIC TRANSMITTER",								/* Task Name */
-			100,																	/* Task Size */
-			( void * ) 0,													/* Task Parameter in*/ 
-			1, 																		/* Task Priority */
-			&Transmitter_Handle, 									/* Task Handle */ 
-			PERIOD_TRANSMITTER);  								/* Task Periodicity */
+			Periodic_Transmitter,					/* Task Implementation */
+			"PERIODIC TRANSMITTER",					/* Task Name */
+			100,									/* Task Size */
+			( void * ) 0,							/* Task Parameter in*/
+			1,										/* Task Priority */
+			&Transmitter_Handle,					/* Task Handle */
+			PERIOD_TRANSMITTER);					/* Task Periodicity */
 
 	xTaskPeriodicCreate(
-			Uart_Receiver, 												/* Task Implementation */
-			"UART",     													/* Task Name */												  
-			100,   																/* Task Size */            
-			( void * ) 0,													/* Task Parameter in */             
-			1,            												/* Task Priority */                
-			&Uart_Handle, 												/* Task Handle */    
-			PERIOD_UART);													/* Task Periodicity */      
+			Uart_Receiver,							/* Task Implementation */
+			"UART",									/* Task Name */
+			100,									/* Task Size */
+			( void * ) 0,							/* Task Parameter in */
+			1,										/* Task Priority */
+			&Uart_Handle,							/* Task Handle */
+			PERIOD_UART);							/* Task Periodicity */
 
 	xTaskPeriodicCreate(
-			Load_1_Simulation,										/* Task Implementation */                
-			"LOAD 1",   													/* Task Name */        
-			100,                       						/* Task Size */
-			( void * ) 0,           							/* Task Parameter in */
-			1,                         						/* Task Priority */
-			&L1_Handle,          									/* Task Handle */
-			PERIOD_LOAD1);	   										/* Task Periodicity */
+			Load_1_Simulation,						/* Task Implementation */
+			"LOAD 1",								/* Task Name */
+			100,									/* Task Size */
+			( void * ) 0,							/* Task Parameter in */
+			1,										/* Task Priority */
+			&L1_Handle,								/* Task Handle */
+			PERIOD_LOAD1);							/* Task Periodicity */
 
 	xTaskPeriodicCreate(
-			Load_2_Simulation,										/* Task Implementation */            
-			"LOAD 2",        											/* Task Name */
-			100,                      						/* Task Size */
-			( void * ) 0,            							/* Task Parameter in */
-			1,                         						/* Task Priority */
-			&L2_Handle,		   											/* Task Handle */
-			PERIOD_LOAD2); 												/* Task Periodicity */
+			Load_2_Simulation,						/* Task Implementation */
+			"LOAD 2",								/* Task Name */
+			100,									/* Task Size */
+			( void * ) 0,							/* Task Parameter in */
+			1,										/* Task Priority */
+			&L2_Handle,								/* Task Handle */
+			PERIOD_LOAD2);							/* Task Periodicity */
 
 	
 		
