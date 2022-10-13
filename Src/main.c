@@ -323,20 +323,20 @@ int main( void )
     /* Tasks Creation */
 	xTaskPeriodicCreate(
 			Button_1_Monitor,						/* Task Implementation */
-			"BUTTON 1",								/* Task Name */
-			100,									/* Stack Size */
+			"BUTTON 1",						/* Task Name */
+			100,							/* Stack Size */
 			( void * ) 0,							/* Task Parameter in*/
-			1,										/* Task Priority */
-			&B1_Handle,								/* Task Handle*/
+			1,							/* Task Priority */
+			&B1_Handle,						/* Task Handle*/
 			PERIOD_BTN1);							/* Task Periodicity*/
 
 	xTaskPeriodicCreate(
 			Button_2_Monitor,						/* Task Implementation */
-			"BUTTON 2",								/* Task Name */
-			100, 									/* Task Size */
+			"BUTTON 2",						/* Task Name */
+			100, 							/* Task Size */
 			( void * ) 0,							/* Task Parameter in*/
-			1,										/* Task Priority */
-			&B2_Handle,								/* Task Handle */
+			1,							/* Task Priority */
+			&B2_Handle,						/* Task Handle */
 			PERIOD_BTN2);							/* Task Periodicity */
 
 	xTaskPeriodicCreate(
